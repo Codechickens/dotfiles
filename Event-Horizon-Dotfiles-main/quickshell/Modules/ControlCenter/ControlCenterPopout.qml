@@ -26,7 +26,6 @@ EHPopout {
 
     // Default bar properties (will be overridden by buttons)
     barPosition: "bottom"
-    barThickness: 48 + (SettingsData?.topBarTopMargin || 0)
 
     property string expandedSection: ""
     property bool powerOptionsExpanded: false

@@ -25,7 +25,7 @@ Text {
     }
 
     color: Theme.surfaceText
-    font.pixelSize: Appearance.fontSize.normal
+    font.pixelSize: Math.max(1, Appearance.fontSize.normal || 12)
     font.family: resolvedFontFamily
     font.weight: SettingsData.fontWeight
     font.letterSpacing: 0.0

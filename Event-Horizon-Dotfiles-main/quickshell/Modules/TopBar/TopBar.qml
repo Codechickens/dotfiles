@@ -111,9 +111,9 @@ PanelWindow {
         when: !barIsVertical && typeof implicitHeight !== "undefined" && implicitHeight >= 0
         value: implicitHeight
     }
-    
-    width: barIsVertical ? implicitWidth : undefined
-    // Note: Don't set height explicitly for WlrLayershell components - use implicitHeight
+
+    // Note: Don't set width/height explicitly for WlrLayershell components - use implicitWidth/implicitHeight
+    // The Bindings above handle setting these properties when ready
     
     Component.onCompleted: {
         const fonts = Qt.fontFamilies()
@@ -428,7 +428,11 @@ PanelWindow {
                         anchors.top: (barPosition === "top" || barPosition === "bottom") ? parent.top : undefined
                         width: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderTop ? SettingsData.topBarBorderWidth : 0
                         height: !barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderTop ? SettingsData.topBarBorderWidth : 0
-                        color: SettingsData.topBarBorderEnabled && SettingsData.topBarBorderTop ? Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha) : "transparent"
+                        color: {
+                            if (!SettingsData.topBarBorderEnabled || !SettingsData.topBarBorderTop) return "transparent"
+                            if (SettingsData.topBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                            return Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha)
+                        }
                     }
                     
                     Rectangle {
@@ -437,7 +441,11 @@ PanelWindow {
                         anchors.bottom: barIsVertical ? parent.bottom : ((barPosition === "top" || barPosition === "bottom") ? parent.bottom : undefined)
                         width: (barPosition === "top" || barPosition === "bottom") && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderLeft ? SettingsData.topBarBorderWidth : 0
                         height: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderLeft ? SettingsData.topBarBorderWidth : 0
-                        color: SettingsData.topBarBorderEnabled && SettingsData.topBarBorderLeft ? Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha) : "transparent"
+                        color: {
+                            if (!SettingsData.topBarBorderEnabled || !SettingsData.topBarBorderLeft) return "transparent"
+                            if (SettingsData.topBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                            return Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha)
+                        }
                     }
                     
                     Rectangle {
@@ -446,7 +454,11 @@ PanelWindow {
                         anchors.bottom: barIsVertical ? parent.bottom : ((barPosition === "top" || barPosition === "bottom") ? parent.bottom : undefined)
                         width: (barPosition === "top" || barPosition === "bottom") && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderRight ? SettingsData.topBarBorderWidth : 0
                         height: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderRight ? SettingsData.topBarBorderWidth : 0
-                        color: SettingsData.topBarBorderEnabled && SettingsData.topBarBorderRight ? Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha) : "transparent"
+                        color: {
+                            if (!SettingsData.topBarBorderEnabled || !SettingsData.topBarBorderRight) return "transparent"
+                            if (SettingsData.topBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                            return Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha)
+                        }
                     }
                     
                     Rectangle {
@@ -455,9 +467,13 @@ PanelWindow {
                         anchors.bottom: (barPosition === "top" || barPosition === "bottom") ? parent.bottom : undefined
                         anchors.leftMargin: (barPosition === "top" || barPosition === "bottom") ? SettingsData.topBarBorderBottomLeftInset : 0
                         anchors.rightMargin: (barPosition === "top" || barPosition === "bottom") ? SettingsData.topBarBorderBottomRightInset : 0
-                        width: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : (barIsVertical && SettingsData.topBarBorderEnabled ? 0 : (barIsVertical ? 1 : 0))
-                        height: !barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : (!barIsVertical && SettingsData.topBarBorderEnabled ? 0 : (!barIsVertical ? 1 : 0))
-                        color: SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha) : Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.3 * root._bgColor.a)
+                        width: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : 0
+                        height: !barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : 0
+                        color: {
+                            if (!SettingsData.topBarBorderEnabled || !SettingsData.topBarBorderBottom) return "transparent"
+                            if (SettingsData.topBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                            return Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha)
+                        }
                     }
                     
                     Item {

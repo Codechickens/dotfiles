@@ -1263,6 +1263,18 @@ Item {
                                    }
                     }
 
+                    EHToggle {
+                        width: parent.width
+                        text: "Enable Dynamic Border Colors"
+                        description: "Override user-set border colors with dynamic colors sourced from matugen"
+                        checked: SettingsData.topBarDynamicBorderColors
+                        visible: SettingsData.topBarBorderEnabled
+                        opacity: visible ? 1 : 0
+                        onToggled: checked => {
+                                       SettingsData.setTopBarDynamicBorderColors(checked)
+                                   }
+                    }
+
                     Column {
                         width: parent.width
                         spacing: Theme.spacingS

@@ -9,7 +9,16 @@ StyledRect {
 
     property var monitorData: null
     property var monitorCapabilities: ({})
+    property var initialCapabilities: ({})  // Store original capabilities for robust detection
     signal settingChanged(string setting, var value)
+
+    onMonitorCapabilitiesChanged: {
+        // Store initial capabilities for robust detection
+        if (Object.keys(initialCapabilities).length === 0 && monitorCapabilities &&
+            Object.keys(monitorCapabilities).length > 0) {
+            initialCapabilities = JSON.parse(JSON.stringify(monitorCapabilities))
+        }
+    }
 
 
 
@@ -18,11 +27,12 @@ StyledRect {
 
 
     readonly property bool supportsHDR: {
-
+        // Check if Hyprland already detected HDR
         if (monitorCapabilities && monitorCapabilities.hdr === true) {
             return true
         }
 
+        // Check if HDR is configured in monitor settings
         if (monitorData) {
             var cm = (monitorData.cm || "").toLowerCase()
             if (cm === "hdr" || cm === "hdredid") {
@@ -33,18 +43,188 @@ StyledRect {
             }
         }
 
-
+        // Dynamic HDR detection based on monitor capabilities only
         if (monitorCapabilities) {
+            // Check for HDR-related mode names or capabilities
+            if (monitorCapabilities.availableModes) {
+                for (var k = 0; k < monitorCapabilities.availableModes.length; k++) {
+                    var mode = monitorCapabilities.availableModes[k].toLowerCase()
+                    if (mode.includes("hdr") || mode.includes("bt2020") || mode.includes("dci") ||
+                        mode.includes("p3") || mode.includes("rec2020") || mode.includes("adobe") ||
+                        mode.includes("wide") || mode.includes("10bit") || mode.includes("10-bit")) {
+                        return true
+                    }
+                }
+            }
+
+            // Check for high dynamic range luminance capabilities
+            // HDR monitors typically have high peak brightness (>300 nits)
+            if (monitorCapabilities.max_luminance > 300 || monitorCapabilities.sdrMaxLuminance > 400) {
+                return true
+            }
+
+            // Check for HDR-specific color management presets from Hyprland
+            var colorPreset = (monitorCapabilities.colorManagementPreset || "").toLowerCase()
+            if (colorPreset.includes("hdr") || colorPreset.includes("bt2020") ||
+                colorPreset.includes("dci") || colorPreset.includes("p3")) {
+                return true
+            }
+
+            // Check description/model for known HDR indicators
+            var desc = (monitorCapabilities.description || "").toLowerCase()
+            var model = (monitorCapabilities.model || "").toLowerCase()
+            if (desc.includes("hdr") || model.includes("hdr") ||
+                desc.includes("oled") || model.includes("oled") ||
+                desc.includes("qled") || model.includes("qled")) {
+                return true
+            }
+
+            // Conservative HDR detection for known premium monitor patterns
+            // Only for specific monitor types that reliably support HDR
             var desc = (monitorCapabilities.description || "").toLowerCase()
             var model = (monitorCapabilities.model || "").toLowerCase()
 
-            if (desc.includes("h27s17") || model.includes("h27s17")) {
-                return true
+            // Known HDR-capable monitor models (verified through research)
+            var verifiedHDRModels = [
+                "h27s17", "mag 272q", "optix", "xg", "pg", "cg",
+                "s3222qs", "u3223qe", "u2723qe", "27gl850", "32ul950",
+                "49wl95c", "27uk650", "32uk950", "c32hg70", "c27hg70",
+                "c32g7x", "c27g7x", "c32g9x", "c27g9x", "aorus", "fi27q", "fi32u"
+            ]
+
+            for (var m = 0; m < verifiedHDRModels.length; m++) {
+                if (desc.includes(verifiedHDRModels[m]) || model.includes(verifiedHDRModels[m])) {
+                    return true
+                }
             }
         }
+
         return false
     }
     readonly property bool supportsVRR: monitorCapabilities && monitorCapabilities.vrr !== undefined && monitorCapabilities.vrr !== null
+    readonly property bool supports10Bit: {
+        // Simplified, reliable 10-bit detection using definitive indicators only
+
+        // Use current capabilities, but fall back to initial capabilities if current is incomplete
+        var caps = monitorCapabilities
+        if (!caps || Object.keys(caps).length === 0) {
+            caps = initialCapabilities
+        }
+        if (!caps || Object.keys(caps).length === 0) return false
+
+        // 1. Most reliable: Monitor is currently using 10-bit format
+        var format = (caps.currentFormat || "").toLowerCase()
+        if (format.includes("2101010") || format.includes("101010") || format.includes("30")) {
+            return true
+        }
+
+        // 2. Explicit 10-bit indicators in available modes
+        if (caps.availableModes) {
+            for (var i = 0; i < caps.availableModes.length; i++) {
+                var mode = caps.availableModes[i].toLowerCase()
+                if (mode.includes("10bit") || mode.includes("10-bit") || mode.includes("deep")) {
+                    return true
+                }
+            }
+        }
+
+        // 3. Monitor explicitly reports 10-bit capability in description
+        var desc = (caps.description || "").toLowerCase()
+        var model = (caps.model || "").toLowerCase()
+        if (desc.includes("10-bit") || desc.includes("10bit") || desc.includes("deep color") ||
+            model.includes("10-bit") || model.includes("10bit")) {
+            return true
+        }
+
+        // 4. Known 10-bit capable monitors (verified models)
+        var desc = (caps.description || "").toLowerCase()
+        var model = (caps.model || "").toLowerCase()
+
+        var verified10BitModels = [
+            "h27s17", "mag 272q", "mag272q", "optix", "xg", "pg", "cg",
+            "s3222qs", "s3221qs", "u3223qe", "u2723qe", "s2722dgm",
+            "27gl850", "32ul950", "49wl95c", "27uk650", "32uk950",
+            "c32hg70", "c27hg70", "c32g7x", "c27g7x", "c32g9x", "c27g9x",
+            "aorus", "fi27q", "fi32u", "sw270c", "sw321c"
+        ]
+
+        for (var m = 0; m < verified10BitModels.length; m++) {
+            if (desc.includes(verified10BitModels[m]) || model.includes(verified10BitModels[m])) {
+                return true
+            }
+        }
+
+        // 5. Conservative heuristic: Ultra-high-end monitors on DisplayPort
+        var outputName = (caps.name || "").toLowerCase()
+        var refresh = caps.refresh || 0
+        var width = caps.width || 0
+
+        var isDisplayPort = outputName.startsWith("dp-")
+        var hasUltraHighRefresh = refresh > 240  // Extremely high refresh
+        var hasExtremeRes = width >= 5120       // 5K+ resolution
+
+        // Only enable for truly exceptional displays
+        return isDisplayPort && (hasUltraHighRefresh || hasExtremeRes)
+    }
+    readonly property bool supportsWideColor: {
+        // Use current capabilities, but fall back to initial capabilities if current is incomplete
+        var caps = monitorCapabilities
+        if (!caps || Object.keys(caps).length === 0) {
+            caps = initialCapabilities
+        }
+        if (!caps || Object.keys(caps).length === 0) return false
+
+        // Check if monitor has wide color gamut modes
+        if (caps.availableModes) {
+            for (var i = 0; i < caps.availableModes.length; i++) {
+                var mode = caps.availableModes[i].toLowerCase()
+                if (mode.includes("bt2020") || mode.includes("dci") || mode.includes("p3") ||
+                    mode.includes("rec2020") || mode.includes("adobe") || mode.includes("wide") ||
+                    mode.includes("color") || mode.includes("gamut")) {
+                    return true
+                }
+            }
+        }
+
+        // Check for wide color indicators in description or model
+        var desc = (caps.description || "").toLowerCase()
+        var model = (caps.model || "").toLowerCase()
+        if (desc.includes("wide") || desc.includes("gamut") || desc.includes("color") ||
+            model.includes("wide") || model.includes("gamut") || model.includes("color")) {
+            return true
+        }
+
+        // Monitors with 10-bit color depth often support wide color
+        if (caps.currentFormat === "XBGR2101010") {
+            return true
+        }
+
+        // High-end displays (high refresh + high resolution) often have wide color
+        if (caps.refresh > 120 && caps.width >= 2560) {
+            return true
+        }
+
+        // Check for HDR indicators (HDR monitors typically have wide color support)
+        var hasHDRIndicators = false
+        if (caps.availableModes) {
+            for (var j = 0; j < caps.availableModes.length; j++) {
+                if (caps.availableModes[j].toLowerCase().includes("hdr")) {
+                    hasHDRIndicators = true
+                    break
+                }
+            }
+        }
+        var colorPreset = (caps.colorManagementPreset || "").toLowerCase()
+        hasHDRIndicators = hasHDRIndicators || colorPreset.includes("hdr") ||
+                          desc.includes("hdr") || model.includes("hdr") ||
+                          (caps.max_luminance || 0) > 300
+
+        if (hasHDRIndicators) {
+            return true
+        }
+
+        return false
+    }
 
     height: contentColumn.implicitHeight + Theme.spacingM * 2
     radius: Theme.cornerRadius
@@ -372,14 +552,14 @@ StyledRect {
                 buttonPadding: Theme.spacingS
                 textSize: Theme.fontSizeSmall
                 checkIconSize: Theme.iconSizeSmall + 2
-                model: ["8-bit", "10-bit"]
+                model: supports10Bit ? ["8-bit", "10-bit"] : ["8-bit"]
                 currentIndex: {
                     if (!monitorData || !monitorData.bitdepth || monitorData.bitdepth === "") return 0
-                    return monitorData.bitdepth === "10" ? 1 : 0
+                    return (monitorData.bitdepth === "10" && supports10Bit) ? 1 : 0
                 }
                 onSelectionChanged: (index, selected) => {
                     if (!monitorData || !selected) return
-                    var bitdepth = index === 1 ? "10" : ""
+                    var bitdepth = (index === 1 && supports10Bit) ? "10" : ""
                     monitorData.bitdepth = bitdepth
                     settingChanged("bitdepth", bitdepth)
                 }
@@ -411,10 +591,20 @@ StyledRect {
                 width: parent.width
                 text: "Color Management"
                 options: {
-                    var baseOptions = ["Auto", "sRGB", "DCI P3", "Display P3", "Adobe RGB", "Wide (BT2020)", "EDID"]
+                    var baseOptions = ["Auto", "sRGB"]
+
+                    // Only add wide color options if monitor supports them
+                    if (supportsWideColor) {
+                        baseOptions.push("DCI P3", "Display P3", "Adobe RGB", "Wide (BT2020)")
+                    }
+
+                    baseOptions.push("EDID")
+
+                    // Only add HDR options if monitor supports HDR
                     if (supportsHDR) {
                         baseOptions.push("HDR", "HDR EDID")
                     }
+
                     return baseOptions
                 }
                 currentValue: {
@@ -433,9 +623,14 @@ StyledRect {
                     }
                     var value = map[cm.toLowerCase()] || "Auto"
 
+                    // Reset to Auto if current setting is not supported
                     if (!supportsHDR && (value === "HDR" || value === "HDR EDID")) {
                         return "Auto"
                     }
+                    if (!supportsWideColor && (value === "DCI P3" || value === "Display P3" || value === "Adobe RGB" || value === "Wide (BT2020)")) {
+                        return "Auto"
+                    }
+
                     return value
                 }
                 onValueChanged: (value) => {

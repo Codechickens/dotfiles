@@ -21,8 +21,16 @@ Item {
     property string selectedMonitor: ""
     readonly property string monitorsConfPath: (Quickshell.env("HOME") || Paths.stringify(StandardPaths.writableLocation(StandardPaths.HomeLocation))) + "/.config/hypr/monitors.conf"
     readonly property string capabilitiesCachePath: Paths.stringify(`${StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)}/DarkMaterialShell/monitor-capabilities.json`)
+    property var previousMonitorSetup: null  // Store previous monitor configuration
 
     signal tabActivated()
+
+    // Load previous monitor setup from cache on initialization
+    function loadPreviousMonitorSetup() {
+        capabilitiesCacheFile.path = ""
+        capabilitiesCacheFile.path = capabilitiesCachePath
+        // The loaded data will trigger the onLoaded handler which sets previousMonitorSetup
+    }
 
     function getFilteredMonitors() {
         if (selectedMonitor === "") {
@@ -282,6 +290,61 @@ Item {
 
             checkEdidForMonitor(monitor.name, i)
         }
+    }
+
+    function checkForMonitorChanges(currentMonitorData) {
+        // Create a summary of current monitor setup
+        var currentSetup = {
+            count: currentMonitorData.length,
+            monitors: []
+        }
+
+        for (var i = 0; i < currentMonitorData.length; i++) {
+            var monitor = currentMonitorData[i]
+            currentSetup.monitors.push({
+                name: monitor.name,
+                description: monitor.description,
+                width: monitor.width,
+                height: monitor.height,
+                refresh: monitor.refreshRate
+            })
+        }
+
+        // Sort monitors for consistent comparison
+        currentSetup.monitors.sort(function(a, b) {
+            return a.name.localeCompare(b.name)
+        })
+
+        // Only wipe monitors.conf when there's truly NO cached capability data
+        // This happens on fresh installs, new users, or when config directory is clean
+        if (!previousMonitorSetup) {
+            console.log("No previous monitor setup found - this appears to be a fresh configuration")
+            wipeMonitorsConf()
+        }
+
+        // For all other cases (existing users, hardware changes, etc.), preserve monitors.conf
+        // The monitor-capabilities.json serves as proof of previous configuration
+
+        // Update previous setup for next comparison
+        previousMonitorSetup = JSON.parse(JSON.stringify(currentSetup))
+    }
+
+    function wipeMonitorsConf() {
+        // Create a basic monitors.conf with just the essential structure
+        var basicConfig = [
+            "# Monitor configuration reset due to monitor changes",
+            "# Please configure your monitors through the Display Config tab",
+            ""
+        ].join('\n')
+
+        // Use FileView to write the file (consistent with other file operations)
+        wipeMonitorsConfFile.path = ""
+        Qt.callLater(() => {
+            wipeMonitorsConfFile.path = monitorsConfPath
+            Qt.callLater(() => {
+                wipeMonitorsConfFile.setText(basicConfig)
+            })
+        })
     }
 
     function checkEdidForMonitor(monitorName, index) {
@@ -674,6 +737,10 @@ Item {
                         }
                     }
                     displayConfigTab.monitorCapabilities = caps
+
+                    // Check if monitor setup has changed and wipe monitors.conf if needed
+                    checkForMonitorChanges(json)
+
                     saveMonitorCapabilitiesToCache()
                     Qt.callLater(() => {
                         checkEdidHdrSupport()
@@ -740,6 +807,26 @@ Item {
                 if (cached && typeof cached === 'object') {
                     if (cached.rawData) {
                         displayConfigTab.rawMonitorData = cached.rawData
+                        // Reconstruct previous monitor setup from cached data
+                        var previousSetup = {
+                            count: cached.rawData.length,
+                            monitors: []
+                        }
+                        for (var i = 0; i < cached.rawData.length; i++) {
+                            var monitor = cached.rawData[i]
+                            previousSetup.monitors.push({
+                                name: monitor.name,
+                                description: monitor.description,
+                                width: monitor.width,
+                                height: monitor.height,
+                                refresh: monitor.refreshRate
+                            })
+                        }
+                        // Sort for consistent comparison
+                        previousSetup.monitors.sort(function(a, b) {
+                            return a.name.localeCompare(b.name)
+                        })
+                        displayConfigTab.previousMonitorSetup = previousSetup
                     }
                     if (cached.processedData) {
                         displayConfigTab.monitorCapabilities = cached.processedData
@@ -750,6 +837,7 @@ Item {
             } catch(e) {
                 displayConfigTab.monitorCapabilities = {}
                 displayConfigTab.rawMonitorData = []
+                displayConfigTab.previousMonitorSetup = null
             }
         }
 
@@ -879,6 +967,32 @@ Item {
                 if (typeof ToastService !== "undefined") {
                     ToastService.showError("Failed to reload Hyprland configuration")
                 }
+            }
+        }
+    }
+
+    FileView {
+        id: wipeMonitorsConfFile
+        blockWrites: false
+        blockLoading: true
+        atomicWrites: true
+        printErrors: true
+
+        onSaved: {
+            console.log("Successfully wiped monitors.conf")
+            if (typeof ToastService !== "undefined") {
+                ToastService.showInfo("Monitor configuration has been reset due to monitor changes. Please reconfigure your displays.")
+            }
+            // Reload monitors after wiping config
+            Qt.callLater(() => {
+                displayConfigTab.loadMonitorsConf()
+            })
+        }
+
+        onSaveFailed: (error) => {
+            console.error("Failed to wipe monitors.conf:", error)
+            if (typeof ToastService !== "undefined") {
+                ToastService.showError("Failed to reset monitor configuration: " + (error || "Unknown error"))
             }
         }
     }

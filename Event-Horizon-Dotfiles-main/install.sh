@@ -8,6 +8,11 @@
 # Supports: Arch Linux, Fedora, Ubuntu/Debian/PikaOS
 # ============================================
 
+# Run in bash regardless of which shell invokes this script
+if [ -z "$BASH_VERSION" ]; then
+    exec bash "$0" "$@"
+fi
+
 set -e  # Exit on error
 
 # ============================================
@@ -41,24 +46,25 @@ copy_config_with_backup() {
     local dest_dir="$2"
     local backup_suffix="${3:-.bak}"
 
-    # Create config directory if it doesn't exist
-    mkdir -p ~/.config
+    # Determine the final destination (source folder name inside dest_dir)
+    local source_name=$(basename "$source_dir")
+    local final_dest="${dest_dir}/${source_name}"
 
-    if [ -d "$dest_dir" ]; then
-        local backup_dir="${dest_dir}${backup_suffix}"
+    if [ -d "$final_dest" ]; then
+        local backup_dir="${final_dest}${backup_suffix}"
         if [ ! -d "$backup_dir" ]; then
-            print_info "Backing up existing $dest_dir to $backup_dir"
-            mv "$dest_dir" "$backup_dir"
+            print_info "Backing up existing $final_dest to $backup_dir"
+            mv "$final_dest" "$backup_dir"
         else
             print_info "Backup $backup_dir already exists, skipping backup"
         fi
     fi
 
-    print_info "Copying $source_dir to $dest_dir"
-    cp -r "$source_dir" "$dest_dir"
+    print_info "Copying $source_dir to $final_dest"
+    cp -r "$source_dir" "$final_dest"
 
     if [ $? -eq 0 ]; then
-        print_success "Successfully installed config to $dest_dir"
+        print_success "Successfully installed config to $final_dest"
     else
         print_error "Failed to copy config files"
         return 1
@@ -131,7 +137,7 @@ package_installed() {
         "fedora")
             rpm -q "$1" &>/dev/null
             ;;
-        "ubuntu"|"debian")
+        "debian")
             dpkg -l "$1" 2>/dev/null | grep -q "^ii"
             ;;
         *)
@@ -169,19 +175,24 @@ detect_distro() {
                 DISTRO_NAME="Fedora"
                 PACKAGE_MANAGER="dnf"
                 ;;
-            "ubuntu"|"zorin"|"pop"|"elementary"|"linuxmint")
-                DISTRO="ubuntu"
-                DISTRO_NAME="Ubuntu"
-                PACKAGE_MANAGER="apt"
-                ;;
             "debian"|"pika")
                 DISTRO="debian"
                 DISTRO_NAME="Debian/PikaOS"
                 PACKAGE_MANAGER="apt"
                 ;;
+            "ubuntu"|"zorin"|"pop"|"elementary"|"linuxmint")
+                print_error "Your distribution ($ID) is not supported by this installer or Hyprland"
+                echo -e "${YELLOW}Please migrate to PikaOS instead, which is built from Debian and can fully meet your needs${NC}"
+                echo -e "${CYAN}PikaOS provides a better experience with superior performance, gaming optimizations, and full Hyprland support.${NC}"
+                echo -e "${BLUE}Learn more: https://wiki.pika-os.com/en/home${NC}"
+                echo -e "${WHITE}Installation instructions and ISOs are available on the PikaOS website.${NC}"
+                exit 1
+                ;;
             *)
                 print_error "Unsupported distribution: $ID"
-                echo -e "${YELLOW}Supported distributions: Arch Linux, Fedora, Ubuntu, Debian/PikaOS${NC}"
+                echo -e "${YELLOW}Supported distributions: Arch Linux, Fedora, Debian/PikaOS${NC}"
+                echo -e "${CYAN}For Ubuntu-based distributions, we recommend switching to PikaOS for the best Hyprland experience.${NC}"
+                echo -e "${BLUE}Learn more about PikaOS: https://wiki.pika-os.com/en/home${NC}"
                 exit 1
                 ;;
         esac
@@ -221,8 +232,7 @@ install_packages() {
             "fedora")
                 run_privileged dnf install -y "${to_install[@]}"
                 ;;
-            "ubuntu")
-                run_privileged apt update
+            "debian")
                 run_privileged apt install -y "${to_install[@]}"
                 ;;
         esac
@@ -320,7 +330,7 @@ build_matugen() {
             "fedora")
                 install_packages rust cargo
                 ;;
-            "ubuntu")
+            "debian")
                 install_packages rustc cargo
                 ;;
         esac
@@ -371,8 +381,8 @@ build_dgop() {
             "fedora")
                 install_packages golang
                 ;;
-            "ubuntu")
-                install_packages golang-go
+            "debian")
+                install_packages golang-go make
                 ;;
         esac
     fi
@@ -407,19 +417,22 @@ build_dgop() {
 install_python_deps() {
     print_section "Installing Python Dependencies"
 
+    # First ensure pip is installed via package manager
     if ! command_exists pip3 && ! command_exists pip; then
         print_info "Installing pip..."
         case "$DISTRO" in
             "arch")
-                install_packages python-pip
+                run_privileged pacman -S --needed --noconfirm python-pip
                 ;;
             "fedora")
-                install_packages python3-pip
+                run_privileged dnf install -y python3-pip
                 ;;
-            "ubuntu"|"debian")
-                install_packages python3-pip
+            "debian")
+                run_privileged apt install -y python3-pip
                 ;;
         esac
+        # Refresh shell hash table so pip3 is found immediately
+        hash -r
     fi
 
     print_info "Installing pynvml..."
@@ -427,7 +440,7 @@ install_python_deps() {
         print_success "pynvml already installed"
     else
         case "$DISTRO" in
-            "ubuntu"|"debian")
+            "debian")
                 pip3 install pynvml --break-system-packages 2>/dev/null || pip3 install pynvml --user
                 ;;
             *)
@@ -484,7 +497,7 @@ main() {
         "fedora")
             run_privileged dnf update -y
             ;;
-        "ubuntu"|"debian")
+        "debian")
             run_privileged apt update && run_privileged apt upgrade -y
             ;;
     esac
@@ -495,10 +508,10 @@ main() {
         "arch")
             # Official packages
             OFFICIAL_PACKAGES=(
-                brightnessctl hyprland cliphist easyeffects firefox fuzzel gedit grim
+                hyprland quickshell brightnessctl cliphist fuzzel gedit grim
                 mission-center nautilus nwg-look pavucontrol polkit polkit-gnome
                 mate-polkit ptyxis qt6ct slurp swappy tesseract wl-clipboard
-                xdg-desktop-portal-hyprland yad qt6-5compat xorg-xhost quickshell
+                xdg-desktop-portal-hyprland yad qt6-5compat xorg-xhost jq
             )
 
             install_packages "${OFFICIAL_PACKAGES[@]}"
@@ -514,60 +527,31 @@ main() {
 
         "fedora")
             FEDORA_PACKAGES=(
-                hyprland-git hyprpicker swww xdg-desktop-portal-hyprland
-                xdg-desktop-portal-wlr xdg-desktop-portal-gnome gnome-keyring
-                brightnessctl cliphist easyeffects firefox fuzzel gedit
+                hyprland hyprpicker swww xdg-desktop-portal-hyprland
+                gnome-keyring brightnessctl cliphist fuzzel gedit
                 gnome-disks gnome-system-monitor gnome-text-editor grim nautilus
                 nwg-look pavucontrol polkit mate-polkit ptyxis qt6ct slurp
-                swappy tesseract wl-clipboard wlogout yad quickshell-git
-                rust cargo gcc gcc-c++ pkg-config openssl-devel libX11-devel
-                libXcursor-devel libXrandr-devel libXi-devel mesa-libGL-devel
-                fontconfig-devel freetype-devel expat-devel cairo-gobject
-                cairo-gobject-devel rust-gdk4-sys+default-devel gtk4-layer-shell-devel
-                qt5-qtgraphicaleffects qt6-qt5compat python3-pyqt6 python3.11
-                python3.11-libs libxcrypt-compat libcurl libcurl-devel apr
-                fuse-libs fuse btop lm_sensors gedit nwg-look
+                swappy tesseract wl-clipboard wlogout yad quickshell
+                qt5-qtgraphicaleffects qt6-qt5compat python3-pyqt6 btop gedit nwg-look quickshell jq
             )
 
             install_packages "${FEDORA_PACKAGES[@]}"
             ;;
 
-        "ubuntu")
-            UBUNTU_PACKAGES=(
-                hyprland-git swww xdg-desktop-portal-hyprland xdg-desktop-portal-wlr
-                xdg-desktop-portal-gnome gnome-keyring brightnessctl cliphist
-                easyeffects firefox fuzzel gedit gnome-system-monitor gnome-text-editor
-                grim nautilus nwg-look pavucontrol mate-polkit-bin ptyxis qt6ct
-                slurp swappy tesseract-ocr wl-clipboard wlogout yad rustc cargo
-                gcc g++ pkg-config libssl-dev libx11-dev libxcursor-dev libxrandr-dev
-                libxi-dev libgl1-mesa-dev libfontconfig-dev libfreetype-dev
-                libexpat1-dev curl unzip fontconfig libcairo2-dev libgtk-4-dev
-                libgtk-layer-shell-dev qtbase5-dev qt6-base-dev python3-pyqt6
-                python3 python3-dev libcurl4-openssl-dev fuse libfuse2t64 btop
-                lm-sensors golang-go make python3-pip quickshell-git qml6-module-qtquick-controls
-                qml6-module-qtcore qml6-module-qtquick-effects qml6-module-qt5compat-graphicaleffects
-                qml6-module-qt-labs-folderlistmodel qml6-module-qt-labs-platform
-            )
-
-            install_packages "${UBUNTU_PACKAGES[@]}"
-            ;;
 
         "debian")
             # PikaOS/Debian uses similar packages to Ubuntu
             DEBIAN_PACKAGES=(
                 hyprland swww xdg-desktop-portal-hyprland xdg-desktop-portal-wlr
                 xdg-desktop-portal-gnome gnome-keyring brightnessctl cliphist
-                easyeffects firefox fuzzel gedit gnome-system-monitor gnome-text-editor
+                fuzzel gedit gnome-system-monitor gnome-text-editor
                 grim nautilus nwg-look pavucontrol mate-polkit-bin ptyxis qt6ct
-                slurp swappy tesseract-ocr wl-clipboard wlogout yad rustc cargo
-                gcc g++ pkg-config libssl-dev libx11-dev libxcursor-dev libxrandr-dev
-                libxi-dev libgl1-mesa-dev libfontconfig-dev libfreetype-dev
-                libexpat1-dev curl unzip fontconfig libcairo2-dev libgtk-4-dev
-                libgtk-layer-shell-dev qtbase5-dev qt6-base-dev python3-pyqt6
-                python3 python3-dev libcurl4-openssl-dev fuse libfuse2t64 btop
-                lm-sensors golang-go make python3-pip quickshell qml6-module-qtquick-controls
-                qml6-module-qtcore qml6-module-qtquick-effects qml6-module-qt5compat-graphicaleffects
-                qml6-module-qt-labs-folderlistmodel qml6-module-qt-labs-platform
+                slurp swappy tesseract-ocr wl-clipboard wlogout yad qtbase5-dev
+                qt6-base-dev python3-pyqt6 python3 python3-dev libcurl4-openssl-dev
+                fuse libfuse2t64 btop lm-sensors golang-go make python3-pip quickshell
+                qml6-module-qtquick-controls qml6-module-qtcore qml6-module-qtquick-effects
+                qml6-module-qt5compat-graphicaleffects qml6-module-qt-labs-folderlistmodel
+                qml6-module-qt-labs-platform matugen dgop jq
             )
 
             install_packages "${DEBIAN_PACKAGES[@]}"
@@ -589,8 +573,8 @@ main() {
     # Copy configuration files
     print_info "Installing configuration files..."
 
-    copy_config_with_backup "hypr" ~/.config/hypr
-    copy_config_with_backup "quickshell" ~/.config/quickshell
+    copy_config_with_backup "hypr" ~/.config
+    copy_config_with_backup "quickshell" ~/.config
 
     # Success message
     print_header "🎉 Installation Complete!"

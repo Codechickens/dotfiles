@@ -30,10 +30,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.3)
+        color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, SettingsData.dockWidgetAreaOpacity)
         radius: Theme.cornerRadius
-        border.width: 1
-        border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.2)
+        border.width: 0
+        border.color: "transparent"
         clip: false
 
         EHIcon {

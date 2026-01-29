@@ -122,8 +122,8 @@ Rectangle {
                     layer.enabled: true
                     layer.effect: OpacityMask {
                         maskSource: Rectangle {
-                            width: parent.width
-                            height: parent.height
+                            width: coverArt.width > 0 ? coverArt.width : 1
+                            height: coverArt.height > 0 ? coverArt.height : 1
                             radius: Theme.cornerRadius
                         }
                     }
@@ -165,7 +165,7 @@ Rectangle {
                     return subtitle.length > 0 ? title + " • " + subtitle : title;
                 }
 
-                anchors.verticalCenter: parent.verticalCenter
+                // Note: Don't use verticalCenter anchor inside Column - Column handles vertical positioning
                 text: displayText
                 font.pixelSize: Theme.fontSizeSmall * (widgetHeight / 30)
                 color: Theme.surfaceText

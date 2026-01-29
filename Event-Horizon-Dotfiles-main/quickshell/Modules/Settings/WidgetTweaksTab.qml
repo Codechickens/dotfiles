@@ -75,8 +75,9 @@ Item {
                         showValue: true
                         wheelEnabled: false
                         onSliderValueChanged: newValue => {
-                                                  SettingsData.setTopBarWidgetTransparency(
-                                                      newValue / 100)
+                                                  const value = newValue / 100
+                                                  SettingsData.setTopBarWidgetTransparency(value)
+                                                  SettingsData.setDockWidgetAreaOpacity(value)
                                               }
                     }
                 }

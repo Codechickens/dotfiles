@@ -183,8 +183,16 @@ PanelWindow {
                     return Qt.rgba(baseColor.r, baseColor.g, baseColor.b, backgroundTransparency)
                 }
                 radius: SettingsData.dockBorderEnabled ? SettingsData.dockBorderRadius : Theme.cornerRadius
-                border.width: SettingsData.dockBorderEnabled ? SettingsData.dockBorderWidth : 1
-                border.color: SettingsData.dockBorderEnabled ? Qt.rgba(SettingsData.dockBorderRed, SettingsData.dockBorderGreen, SettingsData.dockBorderBlue, SettingsData.dockBorderAlpha) : Theme.outlineMedium
+                border.width: SettingsData.dockBorderEnabled ? SettingsData.dockBorderWidth : 0
+                border.color: {
+                    if (!SettingsData.dockBorderEnabled) {
+                        return "transparent"
+                    }
+                    if (SettingsData.dockDynamicBorderColors && Theme.currentTheme === Theme.dynamic) {
+                        return Theme.primary
+                    }
+                    return Qt.rgba(SettingsData.dockBorderRed, SettingsData.dockBorderGreen, SettingsData.dockBorderBlue, SettingsData.dockBorderAlpha)
+                }
                 layer.enabled: true
 
                 Rectangle {
@@ -370,17 +378,6 @@ PanelWindow {
                             contextMenu: dock.contextMenu
                             visible: SettingsData.dockExpandToScreen && hasLeftWidgets
                             z: 2
-                        }
-
-                        Rectangle {
-                            anchors.left: expandedLeftWidgets.right
-                            anchors.leftMargin: 4
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 1
-                            height: parent.height * 0.6
-                            color: Theme.outline
-                            opacity: 0.3
-                            visible: SettingsData.dockExpandToScreen && hasRightWidgets
                         }
 
                         DockWidgets {

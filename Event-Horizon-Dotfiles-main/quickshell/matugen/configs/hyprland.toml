@@ -1,3 +1,3 @@
-[templates.hyprland]
-input_path = '/home/matt/.config/quickshell/matugen/templates/hyprland.conf'
-output_path = '/tmp/hyprland-colors.tmp'
+[templates.dmshyprland]
+input_path = 'SHELL_DIR/matugen/templates/hypr-colors.conf'
+output_path = 'CONFIG_DIR/hypr/dms/colors.conf'

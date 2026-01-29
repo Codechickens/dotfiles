@@ -153,14 +153,14 @@ PanelWindow {
 
             // ===== CONTROL CENTER POPUP =====
             else if (root.objectName === "controlCenterPopout") {
-                // Different positioning based on trigger source (dock vs taskbar)
-                if (root.triggerSection === "dock") {
-                    // Dock launcher: Position relative to dock button
+                // Dedicated dock/center positioning - Control Center should be positioned directly above the dock/center
+                if (root.triggerSection === "dock" || root.triggerSection === "center") {
+                    // DOCK/CENTER: Position Control Center directly above the dock/center with minimal spacing
                     targetX = Math.max(15, Math.min(screenWidth - root.popupWidth - 15, triggerX - root.popupWidth / 2));  // Center on trigger
-                    targetY = Math.max(15, barTop - root.popupHeight - 10);  // Close to bar
-                    console.log(`  ControlCenter (dock): Trigger-centered, close to bar`);
+                    targetY = Math.max(15, barTop - root.popupHeight);  // 5px above dock (minimal spacing)
+                    console.log(`  ControlCenter (${root.triggerSection}): Trigger-centered, 5px above bar`);
                 } else {
-                    // TaskBar launcher: Custom spacing above bar
+                    // TASKBAR: Custom spacing above taskbar
                     targetX = Math.max(15, Math.min(screenWidth - root.popupWidth - 15, triggerX - root.popupWidth / 2));  // Center on trigger
                     targetY = Math.max(15, barTop - root.popupHeight + 45);  // Farther above bar
                     console.log(`  ControlCenter (taskbar): Trigger-centered, custom spacing above bar`);
@@ -285,14 +285,20 @@ PanelWindow {
     WlrLayershell.layer: WlrLayershell.Top
     WlrLayershell.exclusiveZone: shouldBeVisible ? -1 : 0
 
-    WlrLayershell.keyboardFocus: shouldBeVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None 
+    WlrLayershell.keyboardFocus: shouldBeVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
         left: true
-        right: true
-        bottom: true
     }
+
+    margins {
+        left: calculatedPosition.x
+        top: calculatedPosition.y
+    }
+
+    width: popupWidth
+    height: popupHeight
 
     visible: shouldBeVisible
 
@@ -325,13 +331,7 @@ PanelWindow {
         readonly property real screenHeight: root.screen ? root.screen.height : 1080
         readonly property real barExclusiveSize: typeof SettingsData !== "undefined" && SettingsData.topBarVisible && !SettingsData.topBarFloat ? ((SettingsData.topBarHeight * SettingsData.topbarScale) + SettingsData.topBarSpacing + (SettingsData.topBarGothCornersEnabled ? Theme.cornerRadius : 0)) : 0
 
-        property real calculatedX: root.calculatedPosition.x
-        property real calculatedY: root.calculatedPosition.y
-
-        width: popupWidth
-        height: popupHeight
-        x: calculatedX
-        y: calculatedY
+        anchors.fill: parent
         opacity: shouldBeVisible ? 1 : 0
         scale: shouldBeVisible ? 1 : 0.9
 

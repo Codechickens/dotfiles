@@ -13,7 +13,7 @@ sudo pacman -Syu
 ## Step 2: Install Official Repository Packages
 
 ```bash
-sudo pacman -S hyprland quickshell brightnessctl cliphist easyeffects firefox fuzzel gedit grim mission-center nautilus nwg-look pavucontrol polkit polkit-gnome mate-polkit ptyxis qt6ct slurp swappy tesseract wl-clipboard xdg-desktop-portal-hyprland yad qt6-5compat xorg-xhost
+sudo pacman -S hyprland quickshell brightnessctl cliphist easyeffects firefox fuzzel gedit grim mission-center nautilus nwg-look pavucontrol polkit polkit-gnome mate-polkit ptyxis qt6ct slurp swappy tesseract wl-clipboard xdg-desktop-portal-hyprland yad qt6-5compat xorg-xhost jq
 ```
 
 ## Step 3: Install AUR Helper (if needed)

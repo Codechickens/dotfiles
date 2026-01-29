@@ -422,9 +422,9 @@ PanelWindow {
                         anchors.bottom: (barPosition === "top" || barPosition === "bottom") ? parent.bottom : undefined
                         anchors.leftMargin: (barPosition === "top" || barPosition === "bottom") ? SettingsData.topBarBorderBottomLeftInset : 0
                         anchors.rightMargin: (barPosition === "top" || barPosition === "bottom") ? SettingsData.topBarBorderBottomRightInset : 0
-                        width: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : (barIsVertical && SettingsData.topBarBorderEnabled ? 0 : (barIsVertical ? 1 : 0))
-                        height: !barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : (!barIsVertical && SettingsData.topBarBorderEnabled ? 0 : (!barIsVertical ? 1 : 0))
-                        color: SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha) : Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.3 * root._bgColor.a)
+                        width: barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : 0
+                        height: !barIsVertical && SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? SettingsData.topBarBorderWidth : 0
+                        color: SettingsData.topBarBorderEnabled && SettingsData.topBarBorderBottom ? Qt.rgba(SettingsData.topBarBorderRed, SettingsData.topBarBorderGreen, SettingsData.topBarBorderBlue, SettingsData.topBarBorderAlpha) : "transparent"
                     }
                     
                     Item {

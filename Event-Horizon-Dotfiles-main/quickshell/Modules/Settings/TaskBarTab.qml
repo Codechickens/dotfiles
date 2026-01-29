@@ -1466,6 +1466,307 @@ Item {
 
             StyledRect {
                 width: Math.min(parent.width * 1.2, parent.parent ? parent.parent.width - 48 : parent.width * 1.2)
+                height: taskBarBorderSection.implicitHeight + Theme.spacingL * 2
+                anchors.horizontalCenter: parent.horizontalCenter
+                radius: Theme.cornerRadius
+                color: Qt.rgba(Theme.surfaceVariant.r, Theme.surfaceVariant.g,
+                               Theme.surfaceVariant.b, 0.3)
+                border.color: Qt.rgba(Theme.outline.r, Theme.outline.g,
+                                      Theme.outline.b, 0.2)
+                border.width: 1
+                visible: SettingsData.taskBarVisible
+                opacity: visible ? 1 : 0
+
+                Column {
+                    id: taskBarBorderSection
+
+                    anchors.fill: parent
+                    anchors.margins: Theme.spacingL
+                    spacing: Theme.spacingM
+
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spacingM
+
+                        EHIcon {
+                            name: "border_all"
+                            size: Theme.iconSize
+                            color: Theme.primary
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        StyledText {
+                            text: "TaskBar Border"
+                            font.pixelSize: Theme.fontSizeLarge
+                            font.weight: Font.Medium
+                            color: Theme.surfaceText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    EHToggle {
+                        width: parent.width
+                        text: "Enable Border"
+                        description: "Add a customizable border around the taskbar"
+                        checked: SettingsData.taskBarBorderEnabled
+                        onToggled: checked => {
+                                       SettingsData.setTaskBarBorderEnabled(checked)
+                                   }
+                    }
+
+                    EHToggle {
+                        width: parent.width
+                        text: "Enable Dynamic Border Colors"
+                        description: "Override user-set border colors with dynamic colors sourced from matugen"
+                        checked: SettingsData.taskBarDynamicBorderColors
+                        visible: SettingsData.taskBarBorderEnabled
+                        opacity: visible ? 1 : 0
+                        onToggled: checked => {
+                                       SettingsData.setTaskBarDynamicBorderColors(checked)
+                                   }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: Theme.spacingS
+                        visible: SettingsData.taskBarBorderEnabled
+                        opacity: visible ? 1 : 0
+
+                        StyledText {
+                            text: "Border Width"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        EHSlider {
+                            width: parent.width
+                            height: 24
+                            value: SettingsData.taskBarBorderWidth
+                            minimum: 1
+                            maximum: 20
+                            unit: "px"
+                            showValue: true
+                            wheelEnabled: false
+                            onSliderValueChanged: newValue => {
+                                                      SettingsData.setTaskBarBorderWidth(newValue)
+                                                  }
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: Theme.spacingS
+                        visible: SettingsData.taskBarBorderEnabled
+                        opacity: visible ? 1 : 0
+
+                        StyledText {
+                            text: "Border Radius"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        EHSlider {
+                            width: parent.width
+                            height: 24
+                            value: Math.round(SettingsData.taskBarBorderRadius)
+                            minimum: 0
+                            maximum: 50
+                            unit: "px"
+                            showValue: true
+                            wheelEnabled: false
+                            onSliderValueChanged: newValue => {
+                                                      SettingsData.setTaskBarBorderRadius(newValue)
+                                                  }
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: Theme.spacingS
+                        visible: SettingsData.taskBarBorderEnabled
+                        opacity: visible ? 1 : 0
+
+                        StyledText {
+                            text: "Border Sides"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        Row {
+                            width: parent.width
+                            spacing: Theme.spacingS
+
+                            EHToggle {
+                                width: Math.max(84, (parent.width - Theme.spacingS * 3) / 4 + 4)
+                                text: "T"
+                                checked: SettingsData.taskBarBorderTop
+                                onToggled: checked => {
+                                               SettingsData.setTaskBarBorderTop(checked)
+                                           }
+                            }
+
+                            EHToggle {
+                                width: Math.max(84, (parent.width - Theme.spacingS * 3) / 4 + 4)
+                                text: "L"
+                                checked: SettingsData.taskBarBorderLeft
+                                onToggled: checked => {
+                                               SettingsData.setTaskBarBorderLeft(checked)
+                                           }
+                            }
+
+                            EHToggle {
+                                width: Math.max(84, (parent.width - Theme.spacingS * 3) / 4 + 4)
+                                text: "R"
+                                checked: SettingsData.taskBarBorderRight
+                                onToggled: checked => {
+                                               SettingsData.setTaskBarBorderRight(checked)
+                                           }
+                            }
+
+                            EHToggle {
+                                width: Math.max(84, (parent.width - Theme.spacingS * 3) / 4 + 4)
+                                text: "B"
+                                checked: SettingsData.taskBarBorderBottom
+                                onToggled: checked => {
+                                               SettingsData.setTaskBarBorderBottom(checked)
+                                           }
+                            }
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: Theme.spacingS
+                        visible: SettingsData.taskBarBorderEnabled
+                        opacity: visible ? 1 : 0
+
+                        StyledText {
+                            text: "Border Color"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        Row {
+                            width: parent.width
+                            spacing: Theme.spacingS
+
+                            Column {
+                                width: (parent.width - Theme.spacingS * 3) / 4
+                                spacing: Theme.spacingS
+
+                                StyledText {
+                                    text: "Red"
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.surfaceVariantText
+                                }
+
+                                EHSlider {
+                                    width: parent.width
+                                    height: 24
+                                    value: Math.round(SettingsData.taskBarBorderRed * 255)
+                                    minimum: 0
+                                    maximum: 255
+                                    unit: ""
+                                    showValue: true
+                                    wheelEnabled: false
+                                    onSliderValueChanged: newValue => {
+                                                              SettingsData.setTaskBarBorderRed(newValue / 255)
+                                                          }
+                                }
+                            }
+
+                            Column {
+                                width: (parent.width - Theme.spacingS * 3) / 4
+                                spacing: Theme.spacingS
+
+                                StyledText {
+                                    text: "Green"
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.surfaceVariantText
+                                }
+
+                                EHSlider {
+                                    width: parent.width
+                                    height: 24
+                                    value: Math.round(SettingsData.taskBarBorderGreen * 255)
+                                    minimum: 0
+                                    maximum: 255
+                                    unit: ""
+                                    showValue: true
+                                    wheelEnabled: false
+                                    onSliderValueChanged: newValue => {
+                                                              SettingsData.setTaskBarBorderGreen(newValue / 255)
+                                                          }
+                                }
+                            }
+
+                            Column {
+                                width: (parent.width - Theme.spacingS * 3) / 4
+                                spacing: Theme.spacingS
+
+                                StyledText {
+                                    text: "Blue"
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.surfaceVariantText
+                                }
+
+                                EHSlider {
+                                    width: parent.width
+                                    height: 24
+                                    value: Math.round(SettingsData.taskBarBorderBlue * 255)
+                                    minimum: 0
+                                    maximum: 255
+                                    unit: ""
+                                    showValue: true
+                                    wheelEnabled: false
+                                    onSliderValueChanged: newValue => {
+                                                              SettingsData.setTaskBarBorderBlue(newValue / 255)
+                                                          }
+                                }
+                            }
+
+                            Column {
+                                width: (parent.width - Theme.spacingS * 3) / 4
+                                spacing: Theme.spacingS
+
+                                StyledText {
+                                    text: "Alpha"
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.surfaceVariantText
+                                }
+
+                                EHSlider {
+                                    width: parent.width
+                                    height: 24
+                                    value: Math.round(SettingsData.taskBarBorderAlpha * 100)
+                                    minimum: 0
+                                    maximum: 100
+                                    unit: "%"
+                                    showValue: true
+                                    wheelEnabled: false
+                                    onSliderValueChanged: newValue => {
+                                                              SettingsData.setTaskBarBorderAlpha(newValue / 100)
+                                                          }
+                                }
+                            }
+                        }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Theme.mediumDuration
+                            easing.type: Theme.emphasizedEasing
+                        }
+                    }
+                }
+            }
+
+            StyledRect {
+                width: Math.min(parent.width * 1.2, parent.parent ? parent.parent.width - 48 : parent.width * 1.2)
                 height: iconSettingsSection.implicitHeight + Theme.spacingL * 2
                 anchors.horizontalCenter: parent.horizontalCenter
                 radius: Theme.cornerRadius

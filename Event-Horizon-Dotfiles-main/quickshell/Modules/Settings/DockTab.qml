@@ -948,6 +948,48 @@ Item {
                                                       SettingsData.setDockPinnedAppsIconSpacing(newValue)
                                                   }
                         }
+
+                        StyledText {
+                            text: "Pill Background"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        EHToggle {
+                            checked: SettingsData.dockPinnedAppsPillEnabled
+                            onToggled: checked => {
+                                           SettingsData.setDockPinnedAppsPillEnabled(checked)
+                                       }
+                        }
+
+                        StyledText {
+                            text: "Trash Pill Background"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        EHToggle {
+                            checked: SettingsData.dockTrashPillEnabled
+                            onToggled: checked => {
+                                           SettingsData.setDockTrashPillEnabled(checked)
+                                       }
+                        }
+
+                        StyledText {
+                            text: "Launchpad Pill Background"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            font.weight: Font.Medium
+                        }
+
+                        EHToggle {
+                            checked: SettingsData.dockLaunchpadPillEnabled
+                            onToggled: checked => {
+                                           SettingsData.setDockLaunchpadPillEnabled(checked)
+                                       }
+                        }
                     }
                 }
 
@@ -1235,6 +1277,18 @@ Item {
                         checked: SettingsData.dockBorderEnabled
                         onToggled: checked => {
                                        SettingsData.setDockBorderEnabled(checked)
+                                   }
+                    }
+
+                    EHToggle {
+                        width: parent.width
+                        text: "Enable Dynamic Border Colors"
+                        description: "Override user-set border colors with dynamic colors sourced from matugen"
+                        checked: SettingsData.dockDynamicBorderColors
+                        visible: SettingsData.dockBorderEnabled
+                        opacity: visible ? 1 : 0
+                        onToggled: checked => {
+                                       SettingsData.setDockDynamicBorderColors(checked)
                                    }
                     }
 

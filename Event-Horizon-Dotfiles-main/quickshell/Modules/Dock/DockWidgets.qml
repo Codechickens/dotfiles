@@ -34,7 +34,7 @@ Row {
     anchors.centerIn: !root.allowEdgeAnchors ? parent : undefined
     anchors.verticalCenter: root.allowEdgeAnchors ? parent.verticalCenter : undefined
 
-    readonly property real widgetHeight: height
+    readonly property real widgetHeight: Math.max(height, 40)
     
     readonly property bool isFarSide: side === "farLeft" || side === "farRight"
     readonly property real farSideOpacity: 0.8
@@ -371,6 +371,10 @@ Row {
                             const triggerX = rect.x + rect.width / 2
                             const triggerY = Screen.height - dockThickness
 
+                            // Set bar properties for proper positioning
+                            current.controlCenterLoader.item.barPosition = "bottom"
+                            current.controlCenterLoader.item.barThickness = dockThickness
+                            
                             current.controlCenterLoader.item.setTriggerPosition(triggerX, triggerY, rect.width, "center", Screen)
                             current.controlCenterLoader.item.toggle()
                         }
@@ -396,6 +400,10 @@ Row {
                         const triggerX = rect.x + rect.width / 2
                         const triggerY = Screen.height - dockThickness
 
+                        // Set bar properties for proper positioning
+                        controlCenterLoader.item.barPosition = "bottom"
+                        controlCenterLoader.item.barThickness = dockThickness
+                        
                         controlCenterLoader.item.setTriggerPosition(triggerX, triggerY, rect.width, "center", Screen)
                         controlCenterLoader.item.toggle()
                     }

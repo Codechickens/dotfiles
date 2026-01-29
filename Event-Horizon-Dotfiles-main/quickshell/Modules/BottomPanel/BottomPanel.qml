@@ -220,6 +220,67 @@ PanelWindow {
                 return Qt.rgba(baseColor.r, baseColor.g, baseColor.b, backgroundTransparency)
             }
             radius: SettingsData.taskBarRoundedCorners ? SettingsData.taskBarCornerRadius : 0
+            border.width: SettingsData.taskBarBorderEnabled ? SettingsData.taskBarBorderWidth : 0
+            border.color: {
+                if (!SettingsData.taskBarBorderEnabled) return "transparent"
+                if (SettingsData.taskBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                return Qt.rgba(SettingsData.taskBarBorderRed, SettingsData.taskBarBorderGreen, SettingsData.taskBarBorderBlue, SettingsData.taskBarBorderAlpha)
+            }
+        }
+
+        // Border rectangles for individual sides (similar to TopBar)
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderTop ? SettingsData.taskBarBorderWidth : 0
+            color: {
+                if (!SettingsData.taskBarBorderEnabled || !SettingsData.taskBarBorderTop) return "transparent"
+                if (SettingsData.taskBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                return Qt.rgba(SettingsData.taskBarBorderRed, SettingsData.taskBarBorderGreen, SettingsData.taskBarBorderBlue, SettingsData.taskBarBorderAlpha)
+            }
+            visible: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderTop
+        }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderLeft ? SettingsData.taskBarBorderWidth : 0
+            color: {
+                if (!SettingsData.taskBarBorderEnabled || !SettingsData.taskBarBorderLeft) return "transparent"
+                if (SettingsData.taskBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                return Qt.rgba(SettingsData.taskBarBorderRed, SettingsData.taskBarBorderGreen, SettingsData.taskBarBorderBlue, SettingsData.taskBarBorderAlpha)
+            }
+            visible: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderLeft
+        }
+
+        Rectangle {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderRight ? SettingsData.taskBarBorderWidth : 0
+            color: {
+                if (!SettingsData.taskBarBorderEnabled || !SettingsData.taskBarBorderRight) return "transparent"
+                if (SettingsData.taskBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                return Qt.rgba(SettingsData.taskBarBorderRed, SettingsData.taskBarBorderGreen, SettingsData.taskBarBorderBlue, SettingsData.taskBarBorderAlpha)
+            }
+            visible: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderRight
+        }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: SettingsData.taskBarBorderBottomLeftInset
+            anchors.rightMargin: SettingsData.taskBarBorderBottomRightInset
+            height: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderBottom ? SettingsData.taskBarBorderWidth : 0
+            color: {
+                if (!SettingsData.taskBarBorderEnabled || !SettingsData.taskBarBorderBottom) return "transparent"
+                if (SettingsData.taskBarDynamicBorderColors && Theme.currentTheme === Theme.dynamic) return Theme.primary
+                return Qt.rgba(SettingsData.taskBarBorderRed, SettingsData.taskBarBorderGreen, SettingsData.taskBarBorderBlue, SettingsData.taskBarBorderAlpha)
+            }
+            visible: SettingsData.taskBarBorderEnabled && SettingsData.taskBarBorderBottom
         }
 
         // Content container

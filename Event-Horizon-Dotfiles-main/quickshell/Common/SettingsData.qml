@@ -139,8 +139,26 @@ Singleton {
     property real dockBorderGreen: 0.0
     property real dockBorderBlue: 0.0
     property real dockBorderAlpha: 1.0
-    
+    property bool dockDynamicBorderColors: false
+     
     property bool topBarBorderEnabled: false
+    property bool topBarDynamicBorderColors: false
+    
+    property bool taskBarBorderEnabled: false
+    property real taskBarBorderWidth: 2
+    property real taskBarBorderRadius: 8
+    property real taskBarBorderRed: 0.0
+    property real taskBarBorderGreen: 0.0
+    property real taskBarBorderBlue: 0.0
+    property real taskBarBorderAlpha: 1.0
+    property bool taskBarDynamicBorderColors: false
+    property bool taskBarBorderTop: true
+    property bool taskBarBorderLeft: true
+    property bool taskBarBorderRight: true
+    property bool taskBarBorderBottom: true
+    property real taskBarBorderBottomLeftInset: 1
+    property real taskBarBorderBottomRightInset: 1
+    
     property real topBarBorderWidth: 2
     property real topBarBorderRadius: 8
     property real topBarBorderRed: 0.0
@@ -410,6 +428,9 @@ Singleton {
     property real dockIconSpacing: 2
     property real dockPinnedAppsIconSize: 40
     property real dockPinnedAppsIconSpacing: 2
+    property bool dockPinnedAppsPillEnabled: false
+    property bool dockTrashPillEnabled: false
+    property bool dockLaunchpadPillEnabled: false
     property real taskbarScale: 1.0
     property real taskbarIconSize: 30
     property real taskbarIconSpacing: 2
@@ -654,7 +675,7 @@ Singleton {
         if (taskBarLeftWidgets.length === 0 && taskBarCenterWidgets.length === 0 && taskBarRightWidgets.length === 0) {
             // Set default taskbar widget configuration
             taskBarLeftWidgets = [{"id": "launcherButton", "enabled": true}, {"id": "workspaceSwitcher", "enabled": true}]
-            taskBarCenterWidgets = [{"id": "pinnedApps", "enabled": true}, {"id": "separator", "enabled": true}, {"id": "runningApps", "enabled": true}]
+            taskBarCenterWidgets = [{"id": "pinnedApps", "enabled": true}, {"id": "separator", "enabled": false}, {"id": "runningApps", "enabled": true}]
             taskBarRightWidgets = ["systemTray", "weather", "clock", "controlCenterButton", "systemUpdate"]
             updateListModel(taskBarLeftWidgetsModel, taskBarLeftWidgets)
             updateListModel(taskBarCenterWidgetsModel, taskBarCenterWidgets)
@@ -793,8 +814,26 @@ Singleton {
                 dockBorderGreen = settings.dockBorderGreen !== undefined ? settings.dockBorderGreen : 0.0
                 dockBorderBlue = settings.dockBorderBlue !== undefined ? settings.dockBorderBlue : 0.0
                 dockBorderAlpha = settings.dockBorderAlpha !== undefined ? settings.dockBorderAlpha : 1.0
+                dockDynamicBorderColors = settings.dockDynamicBorderColors !== undefined ? settings.dockDynamicBorderColors : false
                 
                 topBarBorderEnabled = settings.topBarBorderEnabled !== undefined ? settings.topBarBorderEnabled : false
+                topBarDynamicBorderColors = settings.topBarDynamicBorderColors !== undefined ? settings.topBarDynamicBorderColors : false
+                
+                taskBarBorderEnabled = settings.taskBarBorderEnabled !== undefined ? settings.taskBarBorderEnabled : false
+                taskBarBorderWidth = settings.taskBarBorderWidth !== undefined ? settings.taskBarBorderWidth : 2
+                taskBarBorderRadius = settings.taskBarBorderRadius !== undefined ? settings.taskBarBorderRadius : 8
+                taskBarBorderRed = settings.taskBarBorderRed !== undefined ? settings.taskBarBorderRed : 0.0
+                taskBarBorderGreen = settings.taskBarBorderGreen !== undefined ? settings.taskBarBorderGreen : 0.0
+                taskBarBorderBlue = settings.taskBarBorderBlue !== undefined ? settings.taskBarBorderBlue : 0.0
+                taskBarBorderAlpha = settings.taskBarBorderAlpha !== undefined ? settings.taskBarBorderAlpha : 1.0
+                taskBarDynamicBorderColors = settings.taskBarDynamicBorderColors !== undefined ? settings.taskBarDynamicBorderColors : false
+                taskBarBorderTop = settings.taskBarBorderTop !== undefined ? settings.taskBarBorderTop : true
+                taskBarBorderLeft = settings.taskBarBorderLeft !== undefined ? settings.taskBarBorderLeft : true
+                taskBarBorderRight = settings.taskBarBorderRight !== undefined ? settings.taskBarBorderRight : true
+                taskBarBorderBottom = settings.taskBarBorderBottom !== undefined ? settings.taskBarBorderBottom : true
+                taskBarBorderBottomLeftInset = settings.taskBarBorderBottomLeftInset !== undefined ? settings.taskBarBorderBottomLeftInset : 1
+                taskBarBorderBottomRightInset = settings.taskBarBorderBottomRightInset !== undefined ? settings.taskBarBorderBottomRightInset : 1
+                
                 topBarBorderWidth = settings.topBarBorderWidth !== undefined ? settings.topBarBorderWidth : 2
                 topBarBorderRadius = settings.topBarBorderRadius !== undefined ? settings.topBarBorderRadius : 8
                 topBarBorderRed = settings.topBarBorderRed !== undefined ? settings.topBarBorderRed : 0.0
@@ -1034,6 +1073,9 @@ Singleton {
                 dockIconSpacing = settings.dockIconSpacing !== undefined ? settings.dockIconSpacing : 2
                 dockPinnedAppsIconSize = settings.dockPinnedAppsIconSize !== undefined ? settings.dockPinnedAppsIconSize : dockIconSize
                 dockPinnedAppsIconSpacing = settings.dockPinnedAppsIconSpacing !== undefined ? settings.dockPinnedAppsIconSpacing : dockIconSpacing
+                dockPinnedAppsPillEnabled = settings.dockPinnedAppsPillEnabled !== undefined ? settings.dockPinnedAppsPillEnabled : false
+                dockTrashPillEnabled = settings.dockTrashPillEnabled !== undefined ? settings.dockTrashPillEnabled : false
+                dockLaunchpadPillEnabled = settings.dockLaunchpadPillEnabled !== undefined ? settings.dockLaunchpadPillEnabled : false
                 taskbarScale = settings.taskbarScale !== undefined ? settings.taskbarScale : 1.0
                 taskbarIconSize = settings.taskbarIconSize !== undefined ? settings.taskbarIconSize : 30
                 taskbarIconSpacing = settings.taskbarIconSpacing !== undefined ? settings.taskbarIconSpacing : 2
@@ -1314,7 +1356,24 @@ Singleton {
                                                 "dockBorderGreen": dockBorderGreen,
                                                 "dockBorderBlue": dockBorderBlue,
                                                 "dockBorderAlpha": dockBorderAlpha,
+                                                "dockDynamicBorderColors": dockDynamicBorderColors,
                                                 "topBarBorderEnabled": topBarBorderEnabled,
+                                                "topBarDynamicBorderColors": topBarDynamicBorderColors,
+                                                "taskBarBorderEnabled": taskBarBorderEnabled,
+                                                "taskBarBorderWidth": taskBarBorderWidth,
+                                                "taskBarBorderRadius": taskBarBorderRadius,
+                                                "taskBarBorderRed": taskBarBorderRed,
+                                                "taskBarBorderGreen": taskBarBorderGreen,
+                                                "taskBarBorderBlue": taskBarBorderBlue,
+                                                "taskBarBorderAlpha": taskBarBorderAlpha,
+                                                "taskBarDynamicBorderColors": taskBarDynamicBorderColors,
+                                                "taskBarBorderTop": taskBarBorderTop,
+                                                "taskBarBorderLeft": taskBarBorderLeft,
+                                                "taskBarBorderRight": taskBarBorderRight,
+                                                "taskBarBorderBottom": taskBarBorderBottom,
+                                                "taskBarBorderBottomLeftInset": taskBarBorderBottomLeftInset,
+                                                "taskBarBorderBottomRightInset": taskBarBorderBottomRightInset,
+                                                
                                                 "topBarBorderWidth": topBarBorderWidth,
                                                 "topBarBorderRadius": topBarBorderRadius,
                                                 "topBarBorderRed": topBarBorderRed,
@@ -1492,6 +1551,9 @@ Singleton {
                                                 "dockIconSpacing": dockIconSpacing,
                                                 "dockPinnedAppsIconSize": dockPinnedAppsIconSize,
                                                 "dockPinnedAppsIconSpacing": dockPinnedAppsIconSpacing,
+                                                "dockPinnedAppsPillEnabled": dockPinnedAppsPillEnabled,
+                                                "dockTrashPillEnabled": dockTrashPillEnabled,
+                                                "dockLaunchpadPillEnabled": dockLaunchpadPillEnabled,
                                                 "taskbarScale": taskbarScale,
                                                 "taskbarIconSize": taskbarIconSize,
                                                 "taskbarIconSpacing": taskbarIconSpacing,
@@ -2750,6 +2812,88 @@ Singleton {
         saveSettings()
     }
 
+    function setDockDynamicBorderColors(enabled) {
+        dockDynamicBorderColors = enabled
+        saveSettings()
+    }
+
+    function setTopBarDynamicBorderColors(enabled) {
+        topBarDynamicBorderColors = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderEnabled(enabled) {
+        taskBarBorderEnabled = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderWidth(width) {
+        taskBarBorderWidth = width
+        saveSettings()
+    }
+
+    function setTaskBarBorderRadius(radius) {
+        var newRadius = Number(radius)
+        if (taskBarBorderRadius !== newRadius) {
+            taskBarBorderRadius = newRadius
+            saveSettings()
+        }
+    }
+
+    function setTaskBarBorderRed(red) {
+        taskBarBorderRed = red
+        saveSettings()
+    }
+
+    function setTaskBarBorderGreen(green) {
+        taskBarBorderGreen = green
+        saveSettings()
+    }
+
+    function setTaskBarBorderBlue(blue) {
+        taskBarBorderBlue = blue
+        saveSettings()
+    }
+
+    function setTaskBarBorderAlpha(alpha) {
+        taskBarBorderAlpha = alpha
+        saveSettings()
+    }
+
+    function setTaskBarDynamicBorderColors(enabled) {
+        taskBarDynamicBorderColors = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderTop(enabled) {
+        taskBarBorderTop = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderLeft(enabled) {
+        taskBarBorderLeft = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderRight(enabled) {
+        taskBarBorderRight = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderBottom(enabled) {
+        taskBarBorderBottom = enabled
+        saveSettings()
+    }
+
+    function setTaskBarBorderBottomLeftInset(inset) {
+        taskBarBorderBottomLeftInset = inset
+        saveSettings()
+    }
+
+    function setTaskBarBorderBottomRightInset(inset) {
+        taskBarBorderBottomRightInset = inset
+        saveSettings()
+    }
 
     function setTopBarFloat(enabled) {
         topBarFloat = enabled
@@ -3746,6 +3890,21 @@ Singleton {
 
     function setDockPinnedAppsIconSpacing(spacing) {
         dockPinnedAppsIconSpacing = spacing
+        saveSettings()
+    }
+
+    function setDockPinnedAppsPillEnabled(enabled) {
+        dockPinnedAppsPillEnabled = enabled
+        saveSettings()
+    }
+
+    function setDockTrashPillEnabled(enabled) {
+        dockTrashPillEnabled = enabled
+        saveSettings()
+    }
+
+    function setDockLaunchpadPillEnabled(enabled) {
+        dockLaunchpadPillEnabled = enabled
         saveSettings()
     }
 

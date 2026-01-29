@@ -15,16 +15,79 @@ Item {
     property var popupTarget: null
     property var parentScreen: null
     property real widgetHeight: 30
+    property bool pillEnabled: SettingsData.dockTrashPillEnabled
 
     // Trash state tracking
     property bool isTrashEmpty: true
     property bool trashCheckRunning: false
 
-    width: SettingsData.taskBarIconSize
-    height: SettingsData.taskBarIconSize
+    implicitWidth: pillEnabled ? pillBackground.implicitWidth : trashIcon.width
+    implicitHeight: pillEnabled ? pillBackground.implicitHeight : trashIcon.height
+    width: implicitWidth
+    height: implicitHeight
 
+    Rectangle {
+        id: pillBackground
+        anchors.fill: parent
+        visible: root.pillEnabled
+        color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, SettingsData.dockWidgetAreaOpacity)
+        radius: Theme.cornerRadius
+        border.width: 0
+        border.color: "transparent"
+        clip: true
+
+        implicitWidth: trashIcon.width + 16
+        implicitHeight: root.widgetHeight
+
+        Image {
+            id: trashIcon
+            anchors.centerIn: parent
+            width: SettingsData.taskBarIconSize
+            height: SettingsData.taskBarIconSize
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+            antialiasing: true
+
+            // Use custom macOS-style trash icons based on trash state
+            source: isTrashEmpty ? Qt.resolvedUrl("../../assets/MacOS-Trash-Empty.png")
+                               : Qt.resolvedUrl("../../assets/MacOS-Trash-Full.png")
+
+            // Update icon when trash state changes
+            Connections {
+                target: trashChecker
+                function onTrashStateChanged() {
+                    trashIcon.source = isTrashEmpty ? Qt.resolvedUrl("../../assets/MacOS-Trash-Empty.png")
+                                                  : Qt.resolvedUrl("../../assets/MacOS-Trash-Full.png")
+                }
+            }
+        }
+
+        MouseArea {
+            id: mouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.LeftButton) {
+                    // Left-click: Open trash in default file browser
+                    trashOpenProcess.running = true;
+                } else if (mouse.button === Qt.RightButton) {
+                    // Right-click: Show context menu
+                    if (trashContextMenuLoader.item) {
+                        trashContextMenuLoader.item.showForButton(root, null, root.parent ? root.parent.height : 40, null)
+                    }
+                }
+            }
+        }
+    }
+
+    // Non-pill version
     Image {
-        id: trashIcon
+        id: trashIconNoPill
+        visible: !root.pillEnabled
         anchors.centerIn: parent
         width: SettingsData.taskBarIconSize
         height: SettingsData.taskBarIconSize
@@ -33,22 +96,21 @@ Item {
         mipmap: true
         antialiasing: true
 
-        // Use custom macOS-style trash icons based on trash state
         source: isTrashEmpty ? Qt.resolvedUrl("../../assets/MacOS-Trash-Empty.png")
                            : Qt.resolvedUrl("../../assets/MacOS-Trash-Full.png")
 
-        // Update icon when trash state changes
         Connections {
             target: trashChecker
             function onTrashStateChanged() {
-                trashIcon.source = isTrashEmpty ? Qt.resolvedUrl("../../assets/MacOS-Trash-Empty.png")
-                                              : Qt.resolvedUrl("../../assets/MacOS-Trash-Full.png")
+                trashIconNoPill.source = isTrashEmpty ? Qt.resolvedUrl("../../assets/MacOS-Trash-Empty.png")
+                                                    : Qt.resolvedUrl("../../assets/MacOS-Trash-Full.png")
             }
         }
     }
 
     MouseArea {
-        id: mouseArea
+        id: mouseAreaNoPill
+        visible: !root.pillEnabled
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -56,10 +118,8 @@ Item {
 
         onClicked: (mouse) => {
             if (mouse.button === Qt.LeftButton) {
-                // Left-click: Open trash in default file browser
                 trashOpenProcess.running = true;
             } else if (mouse.button === Qt.RightButton) {
-                // Right-click: Show context menu
                 if (trashContextMenuLoader.item) {
                     trashContextMenuLoader.item.showForButton(root, null, root.parent ? root.parent.height : 40, null)
                 }
