@@ -314,19 +314,19 @@ install_cachyos_cached_packages() {
 setup_arch_aur() {
     print_section "Setting up AUR (Arch Linux)"
 
-    if ! command_exists yay; then
-        print_info "Installing yay AUR helper..."
+    if ! command_exists paru; then
+        print_info "Installing paru AUR helper..."
         run_privileged pacman -S --needed --noconfirm git base-devel
         cd /tmp
-        git clone https://aur.archlinux.org/yay.git
-        cd yay
+        git clone https://aur.archlinux.org/paru.git
+        cd paru
         makepkg -si --noconfirm
         cd ..
-        rm -rf yay
+        rm -rf paru
         cd ~
-        print_success "yay installed"
+        print_success "paru installed"
     else
-        print_success "yay already installed"
+        print_success "paru already installed"
     fi
 }
 
